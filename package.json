@@ -1,0 +1,20 @@
+{
+  "name": "todo-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "date-format": "^4.0.14",
+    "dateformat": "^5.0.3",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "mongodb": "^3.6.4",
+    "nodemon": "^2.0.22"
+  }
+}
