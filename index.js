@@ -9,7 +9,7 @@ app.use(express.urlencoded({extended: true}));
 app.set('view engine', 'ejs');
 
 const MongoClient = require('mongodb').MongoClient;
-const uri = "mongodb+srv://admin:qwer1234@cluster0.rafr5g9.mongodb.net/?retryWrites=true&w=majority";
+const uri = mongodb_API_URL;
 
 let db;
 let count = 0;
