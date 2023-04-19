@@ -5,6 +5,20 @@ const format = require('date-format');
 const app = express();
 const PORT = 3001;
 
+// 로그인 관련 모듈
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const session = require('express-session');
+
+// app.use() 미들웨어: 요청과 응답 사이에 실행되는 코드
+app.use(session({
+  secret: '1234', //  세션 비번
+  reserve: true, 
+  saveUninitialized: false
+}))
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(express.urlencoded({extended: true}));
 app.set('view engine', 'ejs');
 
@@ -97,4 +111,78 @@ app.post('/update', (req, res) => {
       res.status(200).redirect('/');
     }
   )  
+})
+
+
+app.get('/login', (req, res) => {
+  res.render('login')
+})
+
+// 로그인 요청시 인증처리
+app.post('/login', passport.authenticate('local', {
+  failureRedirect: '/fail', // 로그인 실패시
+}), (req, res) => {
+  res.redirect('/');  // 로그인 성공시
+})
+
+app.get('/mypage', isLogin, (req, res) => {
+  console.log(req.user);
+  res.render('mypage.ejs', { user: req.user}); 
+})
+  
+// 로그인 확인 미들웨어
+function isLogin(req, res, next) {
+  if(req.user) {
+    next();
+  } else {
+    res.send('로그인 안함');
+  }
+}
+
+// 로그인시 실행되는 미들웨어 
+passport.use(new LocalStrategy({
+  usernameField: 'id',
+  passwordField: 'pwd',
+  session: true,  // 로그인 후 세션 저장 유무
+  passReqToCallback: false,
+}, function (입력한아이디, 입력한비번, done) {
+  //console.log(입력한아이디, 입력한비번);
+  db.collection('login').findOne({ id: 입력한아이디 }, function (err,res) {
+    if (err) return done(err)
+    // 일치하는 아이디 없을 때
+    if (!res) return done(null, false, { message: '존재하지않는 아이디요' })
+    // 비번 채크
+    if (입력한비번 == res.pwd) {
+      return done(null, res)
+    } else {
+      return done(null, false, { message: '비번틀렸어요' })
+    }
+  })
+}));
+
+// 로그인 성공시 id를 이용하여 세션을 저장하는 코드
+passport.serializeUser((user, done) => {
+  done(null, user.id)
+})
+
+// 세션데이터를 확인하여 DB에서 사용자 확인(마이페이지 접속시)
+passport.deserializeUser((id, done) => {
+  db.collection('login').findOne({id: id}, (err, res) => {
+    done(null, res)
+  })
+})
+
+
+app.get('/search', async(req, res) => {
+  console.log(req.query)
+  // find() 일치하는 결과만 찾아줌
+  await db.collection('post')
+    .find({title: req.query.val}).toArray(async(err, posts) => {
+    console.log(posts);
+    count = await db.collection('post').count();
+    res.render('index', {
+      posts: posts,
+      count: posts.length
+    })
+  })
 })

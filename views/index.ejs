@@ -10,10 +10,27 @@
 <body>
   <%- include('nav.ejs') %>
 
-  <h1>목록 보기</h1>
-  <p>총 게시물: <%= count %></p>
-  <ul class="list-group">
-    <% for(let i in posts) { %>
+  <div class="container">
+    <h1>목록 보기</h1>
+    <div class="input-group mb-2">
+      <input type="text" class="form-control" id="search">
+      <button id="btn" class="input-group-append btn btn-danger">검색</button>
+    </div>
+
+    <script>
+      const btn = document.getElementById('btn');
+
+      btn.addEventListener('click', () => {
+        const searchVal = document.getElementById('search').value;
+        console.log(searchVal) ;
+        // 서버에게 /search 요청 -> 서버측은 결과를 다시 home으로  
+        window.location.replace(`/search?val=${searchVal}`); 
+      })
+    </script>
+
+    <p>총 게시물: <%= count %></p>
+    <ul class="list-group">
+      <% for(let i in posts) { %>
         <li class="list-group-item d-flex justify-content-between align-items-center">
           <div>
             <a href="/detail/<%= posts[i]._id %>"><%= posts[i].title %></a>
@@ -30,9 +47,11 @@
             </form>
           </div>
         </li>
-    <% } %>
-  </ul>
-  <hr>
+      <% } %>
+    </ul>
+  
+  </div>
+
   
 </body>
 </html>
