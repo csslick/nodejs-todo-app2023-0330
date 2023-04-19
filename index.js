@@ -173,11 +173,41 @@ passport.deserializeUser((id, done) => {
 })
 
 
+// app.get('/search', async(req, res) => {
+//   console.log(req.query)
+//   // find() 일치하는 결과만 찾아줌
+//   await db.collection('post')
+//     .find({title: req.query.val}).toArray(async(err, posts) => {
+//     console.log(posts);
+//     count = await db.collection('post').count();
+//     res.render('index', {
+//       posts: posts,
+//       count: posts.length
+//     })
+//   })
+// })
+
+/*** index 검색 ***/
 app.get('/search', async(req, res) => {
   console.log(req.query)
-  // find() 일치하는 결과만 찾아줌
+  // 검색조건
+  const rule = [
+    {
+      $search: {
+        index: "title",
+        text: {
+          query: req.query.val,
+          path: {
+            wildcard: "*"
+          }
+        }
+      }
+    },
+    { $sort : { _id: 1 } },  // _id 오름차순 정렬
+    { $limit: 10 }   // 찾을 개수
+  ]
   await db.collection('post')
-    .find({title: req.query.val}).toArray(async(err, posts) => {
+    .aggregate(rule).toArray(async(err, posts) => {
     console.log(posts);
     count = await db.collection('post').count();
     res.render('index', {
