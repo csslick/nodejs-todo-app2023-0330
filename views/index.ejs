@@ -35,6 +35,7 @@
           <div>
             <a href="/detail/<%= posts[i]._id %>"><%= posts[i].title %></a>
             <p>_id: <%= posts[i]._id %></p>
+            <p>author: <%= posts[i].author %></p>
           </div>
           <div>
             <form action="/delete" method="post">
