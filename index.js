@@ -115,7 +115,7 @@ app.post('/delete', (req, res) => {
       if(err) {
         console.log(err);
         res.status(500).send('서버 에러 발생'); // 서버 에러 발생 시 클라이언트에게 500 상태 코드와 에러 메시지 전송
-        return;
+        return; 
       }
 
       if(data.deletedCount === 0) { // 삭제된 데이터가 없으면, user_id가 일치하지 않는 경우로 간주
@@ -251,3 +251,6 @@ app.post('/register', (req, res) => {
 })
 
 
+
+// router 미들웨어
+app.use('/shop', require('./routes/shop.js'));
