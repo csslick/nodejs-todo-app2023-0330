@@ -88,12 +88,14 @@ app.get('/write', (req, res) => {
 
 app.post('/add', (req, res) => {
   // console.log(req.body)
-  console.log("add: ", req.user.id)
+  console.log("add: user._id", req.user._id)
+  console.log("add: user.id", req.user.id)
   // db 저장
   db.collection('post').insertOne({
     title: req.body.title, 
     date: req.body.date,
     author: req.user.id,
+    user_id: req.user._id
   }, (err, res) => {
     console.log('저장완료');
   })
@@ -108,9 +110,19 @@ app.post('/delete', (req, res) => {
   const id = req.body.id; // post id
   const objectId = new ObjectID(id);
   db.collection('post')
-    .deleteOne({_id: objectId, author: req.user.id}, (err, data) => {
+    // {글번호, 작성자id}
+    .deleteOne({_id: objectId, user_id: req.user._id}, (err, data) => {
+      if(err) {
+        console.log(err);
+        res.status(500).send('서버 에러 발생'); // 서버 에러 발생 시 클라이언트에게 500 상태 코드와 에러 메시지 전송
+        return;
+      }
+
+      if(data.deletedCount === 0) { // 삭제된 데이터가 없으면, user_id가 일치하지 않는 경우로 간주
+        res.status(403).send('작성자만 삭제할 수 있습니다.'); // 클라이언트에게 403 상태 코드와 에러 메시지 전송
+        return;
+      }
       console.log('삭제완료');
-      if(err) return console.log(err)
       console.log('delete id: ', id);
       res.status(200).redirect('/');
   })
@@ -237,3 +249,5 @@ app.post('/register', (req, res) => {
     res.redirect('/');
   })
 })
+
+
