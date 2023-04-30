@@ -1,3 +1,4 @@
+const path = require('path');
 const { urlencoded } = require('express');
 const express = require('express');
 const { Collection, ObjectID } = require('mongodb');
@@ -19,8 +20,12 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+
+app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.set('view engine', 'ejs');
+// 정적 파일 제공을 위한 미들웨어 등록
+app.use(express.static(path.join(__dirname, 'public')));
 
 const MongoClient = require('mongodb').MongoClient;
 const uri = "mongodb+srv://admin:qwer1234@cluster0.rafr5g9.mongodb.net/?retryWrites=true&w=majority";
@@ -254,3 +259,32 @@ app.post('/register', (req, res) => {
 
 // router 미들웨어
 app.use('/shop', require('./routes/shop.js'));
+
+
+
+// Upload
+app.get('/upload', (req, res) => {
+  res.render('upload.ejs', {
+    title: '업로드'
+  })
+})
+
+// multer 설치 후 미들웨어 설정
+const multer = require('multer');
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, './public/images');
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  }
+}) 
+
+const upload = multer({ storage: storage })
+
+// upload.single(input name 속성명)
+app.post('/upload', upload.single('image'), (req, res) => {
+  res.json({
+    msg: '이미지 전송완료'
+  })
+})
