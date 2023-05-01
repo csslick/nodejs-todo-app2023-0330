@@ -12,6 +12,9 @@ const LocalStrategy = require('passport-local').Strategy;
 const session = require('express-session');
 
 // app.use() 미들웨어: 요청과 응답 사이에 실행되는 코드
+const flash = require('express-flash');
+app.use(flash());
+
 app.use(session({
   secret: '1234', //  세션 비번
   reserve: true, 
@@ -77,10 +80,13 @@ passport.deserializeUser((id, done) => {
 
 
 app.get('/', async (req, res)=> {
+  const successMsg = await req.flash('success');
+  console.log('successMsh = ', successMsg);
   await db.collection('post').find().toArray(async(err, posts) => {
     if(err) return console.log(err)
     count = await db.collection('post').count();
     res.render('index', { 
+      successMsg: successMsg,
       posts: posts,
       count: count,
     })
@@ -178,13 +184,17 @@ app.get('/login', (req, res) => {
 // 로그인 요청시 인증처리
 app.post('/login', passport.authenticate('local', {
   failureRedirect: '/fail', // 로그인 실패시
+  failureFlash: true // 플래시 메시지를 사용하도록 설정
 }), (req, res) => {
+  req.flash('success', '로그인 성공!');
   res.redirect('/');  // 로그인 성공시
 })
 
 app.get('/mypage', isLogin, (req, res) => {
   console.log(req.user);
-  res.render('mypage.ejs', { user: req.user}); 
+  res.render('mypage.ejs', { 
+    user: req.user,
+  }); 
 })
   
 // 로그인 확인 미들웨어
@@ -192,7 +202,11 @@ function isLogin(req, res, next) {
   if(req.user) {
     next();
   } else {
-    res.send('로그인 안함');
+    // res.send('로그인 안함');
+    res.json({
+      isLogin: false,
+      msg: '로그인을 해주세요'
+    })
   }
 }
 
@@ -286,5 +300,14 @@ const upload = multer({ storage: storage })
 app.post('/upload', upload.single('image'), (req, res) => {
   res.json({
     msg: '이미지 전송완료'
+  })
+})
+
+
+app.post('/chat', isLogin, (req, res) => {
+  console.log(req.user);  
+  
+  res.json({
+    msg: "대화창"
   })
 })

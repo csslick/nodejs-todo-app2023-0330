@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,55 +8,88 @@
   <title>Document</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body>
   <%- include('nav.ejs') %>
 
-  <div class="container">
-    <header class="d-flex justify-content-between">
-      <h1>목록 보기</h1>
-      <img src="/images/001.png" alt="image" width="60">
-    </header>
-    <div class="input-group mb-2">
-      <input type="text" class="form-control" id="search">
-      <button id="btn" class="input-group-append btn btn-danger">검색</button>
+    <div class="container">
+      <p><%= successMsg %></p>
+      <header class="d-flex justify-content-between">
+        <h1>목록 보기</h1>
+        <img src="/images/001.png" alt="image" width="60">
+      </header>
+      <div class="input-group mb-2">
+        <input type="text" class="form-control" id="search">
+        <button id="btn" class="input-group-append btn btn-danger">검색</button>
+      </div>
+
+      <script>
+        const btn = document.getElementById('btn');
+
+        btn.addEventListener('click', () => {
+          const searchVal = document.getElementById('search').value;
+          console.log(searchVal);
+          // 서버에게 /search 요청 -> 서버측은 결과를 다시 home으로  
+          window.location.replace(`/search?val=${searchVal}`);
+        })
+      </script>
+
+      <p>총 게시물: <%= count %>
+      </p>
+      <ul class="list-group">
+        <% for(let i in posts) { %>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <a href="/detail/<%= posts[i]._id %>">
+                <%= posts[i].title %>
+              </a>
+              <p>_id: <%= posts[i]._id %>
+              </p>
+              <p>author: <%= posts[i].author %>
+              </p>
+            </div>
+            <div>
+              <form action="/delete" method="post">
+                <input type="hidden" name="id" value="<%= posts[i]._id %>" />
+                <button class="btn btn-danger">삭제</button>
+              </form>
+              <form action="/edit/<%= posts[i]._id %>" method="get">
+                <input type="hidden" name="id" value="<%= posts[i]._id %>" />
+                <button class="btn btn-secondary">수정</button>
+              </form>
+              <button 
+                data-id="<%= posts[i]._id %>"
+                data-author="<%= posts[i].author %>"
+                class="btn btn-primary chat" 
+              >대화</button>
+            </div>
+          </li>
+          <% } %>
+      </ul>
     </div>
 
     <script>
-      const btn = document.getElementById('btn');
-
-      btn.addEventListener('click', () => {
-        const searchVal = document.getElementById('search').value;
-        console.log(searchVal) ;
-        // 서버에게 /search 요청 -> 서버측은 결과를 다시 home으로  
-        window.location.replace(`/search?val=${searchVal}`); 
-      })
+      const chatBtn = document.querySelectorAll('.chat');
+      chatBtn.forEach(btn => {
+          btn.addEventListener('click', (e) => {
+          console.log(e.target.dataset.id, e.target.dataset.author);
+          fetch("/chat", {
+            method: "POST",
+            body: JSON.stringify({
+              host_id: e.target.dataset.id,
+              author: e.target.dataset.author
+            }),
+          })
+            .then((response) => response.json())
+            .then((result) => {
+              console.log(result);
+              if(!result.isLogin) alert(result.msg)
+            });
+        })
+      });
     </script>
 
-    <p>총 게시물: <%= count %></p>
-    <ul class="list-group">
-      <% for(let i in posts) { %>
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <div>
-            <a href="/detail/<%= posts[i]._id %>"><%= posts[i].title %></a>
-            <p>_id: <%= posts[i]._id %></p>
-            <p>author: <%= posts[i].author %></p>
-          </div>
-          <div>
-            <form action="/delete" method="post">
-              <input type="hidden" name="id" value="<%= posts[i]._id %>" />
-              <button class="btn btn-danger">삭제</button>
-            </form>
-            <form action="/edit/<%= posts[i]._id %>" method="get">
-              <input type="hidden" name="id" value="<%= posts[i]._id %>" />
-              <button class="btn btn-secondary">수정</button>
-            </form>
-          </div>
-        </li>
-      <% } %>
-    </ul>
-  
-  </div>
 
-  
 </body>
+
 </html>
