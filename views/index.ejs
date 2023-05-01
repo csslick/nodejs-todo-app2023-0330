@@ -13,7 +13,9 @@
   <%- include('nav.ejs') %>
 
     <div class="container">
-      <p><%= successMsg %></p>
+      <p>
+        <%= successMsg %>
+      </p>
       <header class="d-flex justify-content-between">
         <h1>목록 보기</h1>
         <img src="/images/001.png" alt="image" width="60">
@@ -57,11 +59,8 @@
                 <input type="hidden" name="id" value="<%= posts[i]._id %>" />
                 <button class="btn btn-secondary">수정</button>
               </form>
-              <button 
-                data-id="<%= posts[i]._id %>"
-                data-author="<%= posts[i].author %>"
-                class="btn btn-primary chat" 
-              >대화</button>
+              <button data-author="<%= posts[i].user_id %>"
+                class="btn btn-primary chat">대화</button>
             </div>
           </li>
           <% } %>
@@ -71,19 +70,22 @@
     <script>
       const chatBtn = document.querySelectorAll('.chat');
       chatBtn.forEach(btn => {
-          btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', (e) => {
           console.log(e.target.dataset.id, e.target.dataset.author);
           fetch("/chat", {
             method: "POST",
+            headers: {
+              // 여기에 Content-Type 명시
+              "Content-Type": "application/json",
+            },
             body: JSON.stringify({
-              host_id: e.target.dataset.id,
-              author: e.target.dataset.author
+              author: e.target.dataset.author // 작성자 id
             }),
           })
             .then((response) => response.json())
             .then((result) => {
               console.log('대화버튼클릭: ', result);
-              if(result.isLogin === false) alert(result.msg)
+              if (result.isLogin === false) alert(result.msg)
             });
         })
       });
@@ -92,4 +94,4 @@
 
 </body>
 
-</html>
+</html> 
