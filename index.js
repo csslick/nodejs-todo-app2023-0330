@@ -23,9 +23,8 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-
 app.use(express.json());
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({extended: false}));
 app.set('view engine', 'ejs');
 // 정적 파일 제공을 위한 미들웨어 등록
 app.use(express.static(path.join(__dirname, 'public')));
@@ -304,10 +303,50 @@ app.post('/upload', upload.single('image'), (req, res) => {
 })
 
 
-app.post('/chat', isLogin, (req, res) => {
+//  채팅 생성
+app.post('/chat', isLogin, async (req, res) => {
   console.log(req.user);  
-  
+  console.log('req.body', req.body)
+  const author = ObjectID(Number(req.body.author))
+  const data = {
+    title: '채팅방',
+    member: [author, req.user._id],
+    date: new Date().toLocaleDateString()
+  }
+  console.log(data)
+  await db.collection('chat').insertOne(data);
   res.json({
-    msg: "대화창"
+    msg: "대화창",
+    data: req.body
   })
+})
+
+app.get('/chat', isLogin, async (req, res) => {
+  await db.collection('chat')
+    .find({member: req.user._id}).toArray((err, rooms) => {
+    if(err) return console.log(err)
+  
+    res.render('chat.ejs', { 
+      data: rooms,
+    })
+  })
+})
+
+
+app.post('/message', isLogin, async (req, res) => {
+  try{
+    console.log(req.body);
+    const data = {
+      parent: req.body.parent,
+      content: req.body.content,
+      userid: req.user._id,
+      date: new Date().toLocaleString(), 
+    }
+    console.log(data)
+    await db.collection('message').insertOne(data);
+    res.json({msg: 'success'})
+  } catch(err) {
+    console.log(err, '메시지 쓰기 오류')
+    res.json({msg: err});
+  }
 })
