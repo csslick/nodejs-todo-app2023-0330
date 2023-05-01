@@ -81,7 +81,7 @@ passport.deserializeUser((id, done) => {
 
 app.get('/', async (req, res)=> {
   const successMsg = await req.flash('success');
-  console.log('successMsh = ', successMsg);
+  console.log('successMsg = ', successMsg);
   await db.collection('post').find().toArray(async(err, posts) => {
     if(err) return console.log(err)
     count = await db.collection('post').count();

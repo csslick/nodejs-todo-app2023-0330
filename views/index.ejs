@@ -82,8 +82,8 @@
           })
             .then((response) => response.json())
             .then((result) => {
-              console.log(result);
-              if(!result.isLogin) alert(result.msg)
+              console.log('대화버튼클릭: ', result);
+              if(result.isLogin === false) alert(result.msg)
             });
         })
       });
