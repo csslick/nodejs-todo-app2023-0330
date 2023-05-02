@@ -350,3 +350,23 @@ app.post('/message', isLogin, async (req, res) => {
     res.json({msg: err});
   }
 })
+
+
+
+// 실시간 연결
+app.get('/message/:room', isLogin, async function(req, res){
+
+  res.writeHead(200, {
+    "Connection": "keep-alive",
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+  });
+
+  // 서버에서 메시지 가져오기
+  console.log('room: ', req.params.room)
+  const msg = await db.collection('message')
+                .find({parent: req.params.room}).toArray();
+  console.log('msg = ', msg)
+  res.write('event: test\n');
+  res.write('data: ' + JSON.stringify(msg) + '\n\n');
+}); 
