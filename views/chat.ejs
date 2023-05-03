@@ -56,12 +56,12 @@
           // 실시간 메시지 이벤트, roomId를 보내 어떤 챗방인지 확인
           // 채널이 열려 있는지 확인(채크 안하면 메모리 오류로 오동작)
           if(eventSource) eventSource.close();
+
           eventSource = new EventSource('/message/' + roomId);
-          eventSource.addEventListener('test', e => {
+          eventSource.addEventListener('onmessage', e => {
             console.log(JSON.parse(e.data));
             const msgs = JSON.parse(e.data);
  
-            msgView.innerHTML = null;
             msgs.forEach(msg => {
               msgView.innerHTML += `
                 <p>user: ${msg.userid}, ${msg.content}</p>

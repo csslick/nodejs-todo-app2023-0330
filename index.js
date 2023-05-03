@@ -17,14 +17,14 @@ app.use(flash());
 
 app.use(session({
   secret: '1234', //  세션 비번
-  reserve: true, 
+  reserve: true,
   saveUninitialized: false
 }))
 app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(express.json());
-app.use(express.urlencoded({extended: false}));
+app.use(express.urlencoded({ extended: false }));
 app.set('view engine', 'ejs');
 // 정적 파일 제공을 위한 미들웨어 등록
 app.use(express.static(path.join(__dirname, 'public')));
@@ -34,8 +34,8 @@ const uri = "mongodb+srv://admin:qwer1234@cluster0.rafr5g9.mongodb.net/?retryWri
 
 let db;
 let count = 0;
-MongoClient.connect(uri, async(err, client) => {
-  if(err) return console.log(err)
+MongoClient.connect(uri, async (err, client) => {
+  if (err) return console.log(err)
   db = await client.db('todoapp');
   count = await db.collection('post').count();
   console.log('post count = ', count)
@@ -52,7 +52,7 @@ passport.use(new LocalStrategy({
   passReqToCallback: false,
 }, function (입력한아이디, 입력한비번, done) {
   //console.log(입력한아이디, 입력한비번);
-  db.collection('login').findOne({ id: 입력한아이디 }, function (err,res) {
+  db.collection('login').findOne({ id: 입력한아이디 }, function (err, res) {
     if (err) return done(err)
     // 일치하는 아이디 없을 때
     if (!res) return done(null, false, { message: '존재하지않는 아이디요' })
@@ -72,19 +72,19 @@ passport.serializeUser((user, done) => {
 
 // 세션데이터를 확인하여 DB에서 사용자 확인(마이페이지 접속시)
 passport.deserializeUser((id, done) => {
-  db.collection('login').findOne({id: id}, (err, res) => {
+  db.collection('login').findOne({ id: id }, (err, res) => {
     done(null, res)
   })
 })
 
 
-app.get('/', async (req, res)=> {
+app.get('/', async (req, res) => {
   const successMsg = await req.flash('success');
   console.log('successMsg = ', successMsg);
-  await db.collection('post').find().toArray(async(err, posts) => {
-    if(err) return console.log(err)
+  await db.collection('post').find().toArray(async (err, posts) => {
+    if (err) return console.log(err)
     count = await db.collection('post').count();
-    res.render('index', { 
+    res.render('index', {
       successMsg: successMsg,
       posts: posts,
       count: count,
@@ -102,7 +102,7 @@ app.post('/add', (req, res) => {
   console.log("add: user.id", req.user.id)
   // db 저장
   db.collection('post').insertOne({
-    title: req.body.title, 
+    title: req.body.title,
     date: req.body.date,
     author: req.user.id,
     user_id: req.user._id
@@ -121,39 +121,39 @@ app.post('/delete', (req, res) => {
   const objectId = new ObjectID(id);
   db.collection('post')
     // {글번호, 작성자id}
-    .deleteOne({_id: objectId, user_id: req.user._id}, (err, data) => {
-      if(err) {
+    .deleteOne({ _id: objectId, user_id: req.user._id }, (err, data) => {
+      if (err) {
         console.log(err);
         res.status(500).send('서버 에러 발생'); // 서버 에러 발생 시 클라이언트에게 500 상태 코드와 에러 메시지 전송
-        return; 
+        return;
       }
 
-      if(data.deletedCount === 0) { // 삭제된 데이터가 없으면, user_id가 일치하지 않는 경우로 간주
+      if (data.deletedCount === 0) { // 삭제된 데이터가 없으면, user_id가 일치하지 않는 경우로 간주
         res.status(403).send('작성자만 삭제할 수 있습니다.'); // 클라이언트에게 403 상태 코드와 에러 메시지 전송
         return;
       }
       console.log('삭제완료');
       console.log('delete id: ', id);
       res.status(200).redirect('/');
-  })
+    })
 })
 
 app.get('/detail/:id', (req, res) => {
   console.log(req.params.id);
-  const id = req.params.id; 
+  const id = req.params.id;
   const objectId = new ObjectID(id);
-  db.collection('post').findOne({_id: objectId}, (err, data) => {
-    if(err) return console.log(err);
+  db.collection('post').findOne({ _id: objectId }, (err, data) => {
+    if (err) return console.log(err);
     console.log(data);
     res.render('detail', { data });
   })
-}) 
+})
 
 app.get('/edit/:id', (req, res) => {
   const { id } = req.params;
   const objectId = new ObjectID(id);
-  db.collection('post').findOne({_id: objectId}, (err, data) => {
-    if(err) return console.log(err);
+  db.collection('post').findOne({ _id: objectId }, (err, data) => {
+    if (err) return console.log(err);
     console.log(data);
     const id = data._id;
     const title = data.title;
@@ -166,13 +166,13 @@ app.post('/update', (req, res) => {
   const { id, title, date } = req.body;
   const objectId = new ObjectID(id);
   db.collection('post').updateOne(
-    { _id: objectId }, 
+    { _id: objectId },
     { $set: { title, date } },
     (err) => {
-      if(err) return console.log(err);
+      if (err) return console.log(err);
       res.status(200).redirect('/');
     }
-  )  
+  )
 })
 
 
@@ -191,14 +191,14 @@ app.post('/login', passport.authenticate('local', {
 
 app.get('/mypage', isLogin, (req, res) => {
   console.log(req.user);
-  res.render('mypage.ejs', { 
+  res.render('mypage.ejs', {
     user: req.user,
-  }); 
+  });
 })
-  
+
 // 로그인 확인 미들웨어
 function isLogin(req, res, next) {
-  if(req.user) {
+  if (req.user) {
     next();
   } else {
     // res.send('로그인 안함');
@@ -226,7 +226,7 @@ function isLogin(req, res, next) {
 // })
 
 /*** index 검색 ***/
-app.get('/search', async(req, res) => {
+app.get('/search', async (req, res) => {
   console.log(req.query)
   // 검색조건
   const rule = [
@@ -241,18 +241,18 @@ app.get('/search', async(req, res) => {
         }
       }
     },
-    { $sort : { _id: 1 } },  // _id 오름차순 정렬
+    { $sort: { _id: 1 } },  // _id 오름차순 정렬
     { $limit: 10 }   // 찾을 개수
   ]
   await db.collection('post')
-    .aggregate(rule).toArray(async(err, posts) => {
-    console.log(posts);
-    count = await db.collection('post').count();
-    res.render('index', {
-      posts: posts,
-      count: posts.length
+    .aggregate(rule).toArray(async (err, posts) => {
+      console.log(posts);
+      count = await db.collection('post').count();
+      res.render('index', {
+        posts: posts,
+        count: posts.length
+      })
     })
-  })
 })
 
 
@@ -261,7 +261,7 @@ app.get('/search', async(req, res) => {
  * ***/
 app.post('/register', (req, res) => {
   db.collection('login').insertOne({
-    id: req.body.id, 
+    id: req.body.id,
     pwd: req.body.pwd
   }, (err, data) => {
     res.redirect('/');
@@ -291,7 +291,7 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     cb(null, file.originalname);
   }
-}) 
+})
 
 const upload = multer({ storage: storage })
 
@@ -305,7 +305,7 @@ app.post('/upload', upload.single('image'), (req, res) => {
 
 //  채팅 생성
 app.post('/chat', isLogin, async (req, res) => {
-  console.log(req.user);  
+  console.log(req.user);
   console.log('req.body', req.body)
   const author = ObjectID(Number(req.body.author))
   const data = {
@@ -323,38 +323,38 @@ app.post('/chat', isLogin, async (req, res) => {
 
 app.get('/chat', isLogin, async (req, res) => {
   await db.collection('chat')
-    .find({member: req.user._id}).toArray((err, rooms) => {
-    if(err) return console.log(err)
-  
-    res.render('chat.ejs', { 
-      data: rooms,
+    .find({ member: req.user._id }).toArray((err, rooms) => {
+      if (err) return console.log(err)
+
+      res.render('chat.ejs', {
+        data: rooms,
+      })
     })
-  })
 })
 
 
 app.post('/message', isLogin, async (req, res) => {
-  try{
+  try {
     console.log(req.body);
     const data = {
       parent: req.body.parent,
       content: req.body.content,
       userid: req.user._id,
-      date: new Date().toLocaleString(), 
+      date: new Date().toLocaleString(),
     }
     console.log(data)
     await db.collection('message').insertOne(data);
-    res.json({msg: 'success'})
-  } catch(err) {
+    res.json({ msg: 'success' })
+  } catch (err) {
     console.log(err, '메시지 쓰기 오류')
-    res.json({msg: err});
+    res.json({ msg: err });
   }
 })
 
 
 
-// 실시간 연결
-app.get('/message/:room', isLogin, async function(req, res){
+// 실시간 연결(SSE: Server Sent Event)
+app.get('/message/:room', isLogin, async function (req, res) {
 
   res.writeHead(200, {
     "Connection": "keep-alive",
@@ -365,8 +365,22 @@ app.get('/message/:room', isLogin, async function(req, res){
   // 서버에서 메시지 가져오기
   console.log('room: ', req.params.room)
   const msg = await db.collection('message')
-                .find({parent: req.params.room}).toArray();
-  console.log('msg = ', msg)
-  res.write('event: test\n');
+    .find({ parent: req.params.room }).toArray();
+  // console.log('msg = ', msg)
+  res.write('event: onmessage\n');
   res.write('data: ' + JSON.stringify(msg) + '\n\n');
+
+  // DB에서 특정 도큐먼트가 업데이트 됨을 감지
+  const pipeline = [
+    { $match: { 'fullDocument.parent' : req.params.room } }
+  ];
+  const changeStream = db.collection('message').watch(pipeline);
+
+  // db값이 변경됬을 때 응답
+  changeStream.on('change', (result) => {
+    console.log('fullDocument: ', result.fullDocument);
+    res.write('event: onmessage\n');
+    res.write('data: ' + JSON.stringify([result.fullDocument]) + '\n\n');
+  });
+
 }); 
