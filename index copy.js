@@ -4,13 +4,7 @@ const express = require('express');
 const { Collection, ObjectID } = require('mongodb');
 const format = require('date-format');
 const app = express();
-
-// socket.io 설정
-const http = require('http').createServer(app);
-const { Server } = require('socket.io');
-const io = new Server(http);
 const PORT = 3001;
-
 
 // 로그인 관련 모듈
 const passport = require('passport');
@@ -40,34 +34,15 @@ const uri = "mongodb+srv://admin:qwer1234@cluster0.rafr5g9.mongodb.net/?retryWri
 
 let db;
 let count = 0;
-
 MongoClient.connect(uri, async (err, client) => {
   if (err) return console.log(err)
   db = await client.db('todoapp');
   count = await db.collection('post').count();
   console.log('post count = ', count)
-  // socket.io 사용시 http로 변경
-  http.listen(PORT, () => {
+  app.listen(3001, () => {
     console.log(`server run at ${PORT}`)
   })
 })
-
-
-app.get('/socket', (req, res) => {
-  res.render('socket')
-})
-
-io.on('connection', (socket) => {
-  console.log('유저 접속됨')
-  socket.on('user-send', (msg) => {
-    console.log(msg)
-    // 서버측에서 메시지 보내기(모든 유저에게 방송)
-    io.emit('broadcast', msg);
-  })
-
-
-})
-
 
 // 로그인시 실행되는 미들웨어 
 passport.use(new LocalStrategy({
